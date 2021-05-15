@@ -1,0 +1,99 @@
+1.Fetch updated list of packages
+sudo apt update -y
+2. Install dependencies
+sudo apt install -y git subversion build-essential autoconf automake libtool libncurses5 libncurses5-dev make libjpeg-dev libtool libtool-bin libsqlite3-dev libpcre3-dev libspeexdsp-dev libldns-dev libedit-dev yasm liblua5.2-dev libopus-dev cmake
+3. Lets install some optional packages too
+sudo apt install -y libcurl4-openssl-dev libexpat1-dev libgnutls28-dev libtiff5-dev libx11-dev unixodbc-dev libssl-dev python-dev zlib1g-dev libasound2-dev libogg-dev libvorbis-dev libperl-dev libgdbm-dev libdb-dev uuid-dev libsndfile1-dev
+4. Now install signalwire related packages. First install libks.
+sudo apt install cmake
+cd /usr/src
+sudo git clone https://github.com/signalwire/libks.git
+cd libks
+sudo cmake .
+sudo make
+make install
+5. Then install signalwire-c
+cd /usr/src
+git clone https://github.com/signalwire/signalwire-c.git
+cd signalwire-c
+sudo cmake .
+sudo make
+sudo make install
+6. Next, get the latest FreeSwitch version from releases page using wget:
+cd /usr/src
+sudo wget https://files.freeswitch.org/freeswitch-releases/freeswitch-1.10.3.-release.zip
+sudo apt -y install unzip
+sudo unzip freeswitch-1.10.3.-release.zip
+cd freeswitch-1.10.3.-release/
+7.Now run standard installation process
+sudo ./configure -C
+sudo make
+8. Error
+sudo apt install libswscale-dev
+Sudo apt install  libpq-dev
+#Sau khi cài đặt thành công. Quay về terminal cũ thực hiện câu lệnh: sudo ./configure && sudo make clean && sudo make
+#Next, install freeswitch:
+sudo make install
+#Now compile sounds
+sudo make all cd-sounds-install cd-moh-install
+Create simlinks to use services easily.
+sudo ln -s /usr/local/freeswitch/bin/freeswitch /usr/bin/
+sudo ln -s /usr/local/freeswitch/bin/fs_cli /usr/bin
+#Add new group and user with less privileges to run FreeSWITCH service.
+cd /usr/local
+sudo groupadd freeswitch
+sudo adduser --disabled-password  --quiet --system --home /usr/local/freeswitch --gecos "FreeSWITCH Voice Platform" --ingroup freeswitch freeswitch
+sudo chown -R freeswitch:freeswitch /usr/local/freeswitch/
+sudo chmod -R ug=rwX,o= /usr/local/freeswitch/
+sudo chmod -R u=rwx,g=rx /usr/local/freeswitch/bin/
+#We need to add FreeSwitch as a systemd unit file. Open new file /etc/systemd/system/freeswitch.service using your favorite editor paste the below content:
+sudo vim /etc/systemd/system/freeswitch.service
+#Paste the following content
+[Unit]
+Description=freeswitch
+Wants=network-online.target
+Requires=syslog.socket network.target local-fs.target
+After=syslog.socket network.target network-online.target local-fs.target
+
+[Service]
+Type=forking
+Environment="DAEMON_OPTS=-nonat"
+EnvironmentFile=-/etc/default/freeswitch
+ExecStartPre=/bin/chown -R freeswitch:freeswitch /usr/local/freeswitch
+ExecStart=/usr/bin/freeswitch -u freeswitch -g freeswitch -ncwait $DAEMON_OPTS
+TimeoutSec=45s
+Restart=always
+RestartSec=90
+StartLimitInterval=0
+StartLimitBurst=6
+
+User=root
+Group=daemon
+LimitCORE=infinity
+LimitNOFILE=100000
+LimitNPROC=60000
+LimitSTACK=250000
+LimitRTPRIO=infinity
+LimitRTTIME=infinity
+IOSchedulingClass=realtime
+IOSchedulingPriority=2
+CPUSchedulingPolicy=rr
+CPUSchedulingPriority=89
+UMask=0007
+NoNewPrivileges=false
+
+[Install]
+WantedBy=multi-user.target
+#Start FreeSwitch service and enable it on boot
+cd /etc/systemd/system/
+sudo chmod ugo+x freeswitch.service
+sudo systemctl start freeswitch.service
+sudo systemctl enable freeswitch.service
+#Now check status of FreeSWITCH service
+sudo systemctl status freeswitch.service
+
+################
+hướng dẫn cài đặt icanblink
+darcs clone http://devel.ag-projects.com/repositories/blink-qt
+nếu xảy ra lỗi
+pip install --upgrade cython
