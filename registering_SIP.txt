@@ -1,0 +1,9 @@
+Create new user freeswitch and check 
++add file 2000.xml in ...freeswitch/conf/directory/default
+<include>
+    <user id="1007">
+        <params>
+            <param name="password" value="1234"/>
+        </params>
+    </user>
+</include>
